@@ -2,10 +2,8 @@ const express = require('express');
 const app = express();
 
 const kafka = require('kafka-node');
-const kafkaHost = '167.71.2.100:9001';
 
 var Consumer = kafka.Consumer,
-  // client = new kafka.KafkaClient({kafkaHost: kafkaHost}),
   client = new kafka.KafkaClient(),
   consumer = new Consumer(client, [{ topic: 'userFile', partition: 0}], {autoCommit: false});
 
@@ -16,6 +14,7 @@ mongoose.connect(dbURI, {useNewUrlParser: true, useUnifiedTopology: true });
 const filesSchema = new mongoose.Schema({ filename: String, destination: String });
 const File = mongoose.model('File', filesSchema);
 
+// мониторим успешное соединение и пишем в базу
 mongoose.connection.once('connected', (connected) => {
   console.log('Connected to ' + dbURI);
   consumer.on('message', (message) => {
@@ -28,6 +27,7 @@ mongoose.connection.once('connected', (connected) => {
   });
 });
 
+// ошибка соединения
 mongoose.connection.on('error', (err) => {
   console.log('error: ' + err);
   consumer.on('error', (err) => {
@@ -35,6 +35,7 @@ mongoose.connection.on('error', (err) => {
   });
 });
 
+// если разрыв соединения
 mongoose.connection.on('disconnected', (connected) => {
   console.log('Disconnected');
 });

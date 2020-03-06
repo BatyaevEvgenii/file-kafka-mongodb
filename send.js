@@ -19,13 +19,12 @@ var Producer = kafka.Producer,
   producer = new Producer(client);
 
 producer.on('ready', () => {
-    console.log('Producer is ready to send...');
-    // console.log(producer);
+  console.log('Producer is ready to send...');
 });
 
 producer.on('error', (err) => {
-    console.log('Producer is error');
-    console.log(err);
+  console.log('Producer is error');
+  console.log(err);
 });
 
 app.use(express.static('./public'));
@@ -38,8 +37,10 @@ app.get('/success', (request, response) => {
   response.sendFile(__dirname + '/public/success.html');
 });
 
+// папка куда будем копировать файл
 const path = './tmp'
 
+// воспользуемся multer
 var storage = multer.diskStorage({
   destination: (req, file, callback) => {
     if (!fs.existsSync(path)){
@@ -55,12 +56,14 @@ var storage = multer.diskStorage({
     };
   },
   filename: (req, file, callback) => {
+    // добавим системную дату перед именем файла
     callback(null, Date.now() + '-' + file.originalname);
   }
 });
 
 var upload = multer({ storage : storage});
 
+// обработка события "Upload File"
 app.post('/uploadfile', upload.single('userFile'), (req, res, next) => {
   var sentMessage = JSON.stringify(req.file, ['filename', 'destination']);
   payloads = [{ topic: req.file.fieldname, messages:sentMessage , partition: 0 }];
@@ -70,6 +73,7 @@ app.post('/uploadfile', upload.single('userFile'), (req, res, next) => {
   console.log('File has downloaded');
   console.log(req.file);
 
+  // если все хорошо
   res.redirect('/success');
 });
 
